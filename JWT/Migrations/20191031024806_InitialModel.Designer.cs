@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace JWT.Migrations
 {
-    [DbContext(typeof(JWTContext))]
+    [DbContext(typeof(JwtContext))]
     [Migration("20191031024806_InitialModel")]
     partial class InitialModel
     {

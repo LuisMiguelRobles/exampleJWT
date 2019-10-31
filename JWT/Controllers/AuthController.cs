@@ -1,20 +1,10 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.IdentityModel.Tokens.Jwt;
-using System.Linq;
-using System.Net;
-using System.Net.Http;
-using System.Security.Claims;
+﻿using System.Net;
 using System.Text;
-using System.Threading.Tasks;
 using JWT.Models;
 using JWT.Persistence;
 using JWT.ViewModels;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
-using Microsoft.IdentityModel.Tokens;
 
 namespace JWT.Controllers
 {
@@ -33,16 +23,16 @@ namespace JWT.Controllers
 
         [HttpPost]
         [Route("Login")]
-        public IActionResult Login(string email, string password)
+        public IActionResult Login(UserViewModel viewModel)
         {
-            var user = _unitOfWork.User.GetUser(email);
+            var user = _unitOfWork.User.GetUser(viewModel.Email);
             if (!ModelState.IsValid)
                 return BadRequest(HttpStatusCode.NotFound);
 
             if (user == null)
                 return NotFound();
 
-            if (!BCrypt.Net.BCrypt.Verify(password, user.Password))
+            if (!BCrypt.Net.BCrypt.Verify(viewModel.Password, user.Password))
             {
                 return NotFound();
             }

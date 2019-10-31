@@ -3,11 +3,10 @@ using JWT.Connection;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
-using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace JWT.Migrations
 {
-    [DbContext(typeof(JWTContext))]
+    [DbContext(typeof(JwtContext))]
     partial class JWTContextModelSnapshot : ModelSnapshot
     {
         protected override void BuildModel(ModelBuilder modelBuilder)

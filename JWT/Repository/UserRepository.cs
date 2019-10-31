@@ -7,9 +7,9 @@ namespace JWT.Repository
 {
     public class UserRepository : IUser
     {
-        private readonly JWTContext _context;
+        private readonly JwtContext _context;
 
-        public UserRepository(JWTContext context)
+        public UserRepository(JwtContext context)
         {
             _context = context;
         }

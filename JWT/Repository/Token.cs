@@ -1,14 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
-using System.Linq;
 using System.Security.Claims;
-using System.Text;
-using System.Threading.Tasks;
 using JWT.Connection;
 using JWT.Models;
 using JWT.Repository.Interfaces;
-using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 
 namespace JWT.Repository
@@ -16,9 +11,9 @@ namespace JWT.Repository
     public class Token : IToken
     {
         
-        private readonly JWTContext _context;
+        private readonly JwtContext _context;
 
-        public Token(JWTContext context)
+        public Token(JwtContext context)
         {
             _context = context;
         }

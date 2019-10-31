@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using JWT.Models;
-using Microsoft.IdentityModel.Tokens;
+﻿using JWT.Models;
 
 namespace JWT.Repository.Interfaces
 {
