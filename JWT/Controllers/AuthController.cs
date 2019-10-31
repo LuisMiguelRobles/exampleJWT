@@ -9,6 +9,7 @@ using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
 using JWT.Models;
+using JWT.Persistence;
 using JWT.ViewModels;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -17,69 +18,66 @@ using Microsoft.IdentityModel.Tokens;
 
 namespace JWT.Controllers
 {
-
     [ApiController]
     [Route("[controller]")]
     public class AuthController : ControllerBase
     {
+        private readonly IUnitOfWork _unitOfWork;
         private readonly IConfiguration _configuration;
 
-        public AuthController(IConfiguration configuration)
+        public AuthController(IUnitOfWork unitOfWork, IConfiguration configuration)
         {
+            _unitOfWork = unitOfWork;
             _configuration = configuration;
         }
 
         [HttpPost]
+        [Route("Login")]
         public IActionResult Login(string email, string password)
         {
-            var user = UserList.SingleOrDefault(x => x.Email == email && x.Password == password);
-            if (user == null)
+            var user = _unitOfWork.User.GetUser(email);
+            if (!ModelState.IsValid)
                 return BadRequest(HttpStatusCode.NotFound);
 
+            if (user == null)
+                return NotFound();
+
+            if (!BCrypt.Net.BCrypt.Verify(password, user.Password))
+            {
+                return NotFound();
+            }
+           
+
+            return Ok(_unitOfWork.Token.GetToken(user,GetKey()));
+        }
+
+        [HttpPost]
+        [Route("~/api/save")]
+        //public IActionResult AddUser(string email, string password)
+        public IActionResult AddUser(User request)
+        {
+            if (request == null)
+                return BadRequest();
+
+            var user = new User
+            {
+                Name = request.Name ?? string.Empty,
+                LastName = request.LastName ?? string.Empty,
+                UserName = request.UserName ?? string.Empty,
+                Email = request.Email ?? string.Empty,
+                Password = BCrypt.Net.BCrypt.HashPassword(request.Password) ?? string.Empty
+            };
+            _unitOfWork.User.AddUser(user);
+            _unitOfWork.Complete();
+            return Ok(user);
+        }
+
+
+        private byte[] GetKey()
+        {
             var secretKey = _configuration.GetValue<string>("JWT:secretKey");
             var key = Encoding.ASCII.GetBytes(secretKey);
-            var tokenHandler = new JwtSecurityTokenHandler();
-            var createToken = tokenHandler.CreateToken(GetSecurityTokenDescriptor(key, user));
-
-
-            return Ok(tokenHandler.WriteToken(createToken));
+            return key;
         }
-
-        private ClaimsIdentity GetUserClaims(User user)
-        {
-
-            var claims = new ClaimsIdentity(new[]
-            {
-                new Claim(ClaimTypes.NameIdentifier, user.UserName),
-                new Claim(ClaimTypes.Email, user.Email)
-            });
-
-            return claims;
-        }
-
-        private SecurityTokenDescriptor GetSecurityTokenDescriptor(byte[] key, User user)
-        {
-            var tokenDescriptor = new SecurityTokenDescriptor
-            {
-                Subject = GetUserClaims(user),
-
-                Expires = DateTime.UtcNow.AddMinutes(2),
-
-                SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256)
-            };
-
-            return tokenDescriptor;
-        }
-
-
-
-        private IEnumerable<User> UserList = new List<User>()
-        {
-            new User{Email ="prueba1@gmail.com",Id= 1, Password= "prueba", UserName= "prueba1"},
-            new User{Email ="prueba2@gmail.com",Id= 2, Password= "prueba", UserName= "prueba2"},
-            new User{Email ="prueba3@gmail.com",Id= 3, Password= "prueba", UserName= "prueba3"},
-            new User{Email ="prueba4@gmail.com",Id= 4, Password= "prueba", UserName= "prueba4"},
-            new User{Email ="prueba5@gmail.com",Id= 5, Password= "prueba", UserName= "prueba5"}
-        };
     }
 }

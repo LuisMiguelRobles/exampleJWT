@@ -1,9 +1,16 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
+using System.Web.Http;
+using Autofac;
+using Autofac.Integration.WebApi;
 using JWT.Connection;
+using JWT.Persistence;
+using JWT.Repository;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -28,13 +35,17 @@ namespace JWT
 
         public IConfiguration Configuration { get; }
 
+       
+
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
             var secretKey = Encoding.ASCII.GetBytes(Configuration.GetValue<string>("JWT:secretKey"));
 
             IdentityModelEventSource.ShowPII = true;
+
             services.AddDbContext<JWTContext>(x=> x.UseSqlServer(Configuration.GetConnectionString("DefaultConnection")));
+            
             services.AddAuthentication(x =>
                 {
                     x.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -54,8 +65,11 @@ namespace JWT
                     };
                 });
 
+            services.AddControllers().AddControllersAsServices();
 
-            services.AddControllers();
+            var containerBuilder = new ContainerBuilder();
+            ConfigureContainer(containerBuilder);
+            
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -78,6 +92,14 @@ namespace JWT
             });
             
             app.UseAuthentication();
+        }
+        public void ConfigureContainer(ContainerBuilder containerBuilder)
+        {
+            // wire up using autofac specific APIs here
+
+            containerBuilder.RegisterType<UnitOfWork>().As<IUnitOfWork>();
+
+            
         }
     }
 }
